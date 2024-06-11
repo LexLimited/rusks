@@ -5,13 +5,13 @@ use clap::{Command, Arg, arg, value_parser};
 
 use crate::error::Error;
 
-use self::creation::{edit::create_edit, new::create_new, list::create_list, remove::create_remove};
+use self::creation::{edit::create_edit, add::create_add, list::create_list, remove::create_remove};
 
 pub enum CMD {
     Init,
     Delete,
     Status,
-    New { title: String, options: Vec<String> },
+    Add { title: String, options: Vec<String> },
     Remove { id: Option<u64>, name: Option<String> },
     Edit { id: Option<u64>, name: Option<String> },
     List { pattern: String },
@@ -25,7 +25,7 @@ impl CMD {
                 "init" => Ok(CMD::Init),
                 "delete" => Ok(CMD::Delete),
                 "status" => Ok(CMD::Status),
-                "new" => create_new(matches),
+                "add" => create_add(matches),
                 "remove" => create_remove(matches),
                 "edit" => create_edit(matches),
                 "list" => create_list(matches),
@@ -50,7 +50,7 @@ impl CMD {
                 Command::new("status").about("IDK -- git has it, so does rusks")
             )
             .subcommand(
-                Command::new("new").about("Add a new task")
+                Command::new("add").about("Adds a new task")
                     .arg(Arg::new("title").required(true))
                     .arg(
                         arg!(-m --message "Adds a message to the task")

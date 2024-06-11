@@ -1,6 +1,6 @@
 mod repository;
 mod status;
-mod new;
+mod add;
 mod edit;
 mod remove;
 mod list;
@@ -9,7 +9,7 @@ use crate::{fs::is_rusks_repository, storage::RusksStorage};
 
 use self::{
     edit::exec_edit,
-    repository::{exec_init, exec_delete}, status::exec_status, new::exec_new, list::exec_list, remove::exec_remove
+    repository::{exec_init, exec_delete}, status::exec_status, add::exec_add, list::exec_list, remove::exec_remove
 };
 
 use super::{CMD, Error};
@@ -29,7 +29,7 @@ impl CMD {
             CMD::Delete => exec_delete(),
             CMD::List { pattern } => exec_list(storage, pattern),
             CMD::Status => exec_status(storage),
-            CMD::New { title, options } => exec_new(storage, title, options),
+            CMD::Add { title, options } => exec_add(storage, title, options),
             CMD::Edit { id, name } => exec_edit(storage, id, name),
             CMD::Remove { id, name } => exec_remove(storage, id, name),
             _ => Err(Error::Reason{ reason: "Unhandled".to_string() })
