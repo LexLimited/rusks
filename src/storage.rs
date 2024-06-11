@@ -24,6 +24,10 @@ impl fmt::Display for Item {
 }
 
 impl Item {
+    pub fn get_id(&self) -> u64 {
+        self.id
+    }
+
     pub fn get_task(&self) -> &Task {
         &self.task
     }
@@ -105,5 +109,12 @@ impl RusksStorage {
         }
 
         ret
+    }
+
+    pub fn remove_by_id(&self, id: u64) -> Result<()> {
+        if let Err(e) = self.db.remove(id.to_le_bytes()) {
+            return Err(Error::Reason{ reason: format!("Failed to remove an item: {}", e) });
+        }
+        Ok(())
     }
 }

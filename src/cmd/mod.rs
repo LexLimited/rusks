@@ -5,7 +5,7 @@ use clap::{Command, Arg, arg, value_parser};
 
 use crate::error::Error;
 
-use self::creation::{edit::create_edit, new::create_new, list::create_list};
+use self::creation::{edit::create_edit, new::create_new, list::create_list, remove::create_remove};
 
 pub enum CMD {
     Init,
@@ -26,13 +26,13 @@ impl CMD {
                 "delete" => Ok(CMD::Delete),
                 "status" => Ok(CMD::Status),
                 "new" => create_new(matches),
-                "remove" => todo!("implement create cmd remove"),
+                "remove" => create_remove(matches),
                 "edit" => create_edit(matches),
                 "list" => create_list(matches),
-                _ => Err(Error::Generic)
+                _ => Err(Error::Reason{ reason: "Not a valid command".to_string() })
             }
         } else {
-            Err(Error::Generic)
+            Err(Error::Reason{ reason: "No command provided".to_string() })
         }
     }
     
@@ -58,7 +58,9 @@ impl CMD {
             )
             .subcommand(
                 Command::new("remove").about("Remove a task")
-                    .arg(Arg::new("id"))
+                    .arg(Arg::new("id")
+                        .value_parser(value_parser!(u64))
+                        .required(true))
                 //    .arg(Arg::new("name"))
             )
             .subcommand(
@@ -75,6 +77,7 @@ impl CMD {
                         arg!(-A --all "Lists more information about the task")
                     )
             )
+            .subcommand_required(true)
     }
 }
 

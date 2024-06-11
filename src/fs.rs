@@ -2,7 +2,7 @@ use std::{io, fs::{
     create_dir,
     create_dir_all,
     remove_dir_all,
-    File, remove_file}, path::{PathBuf, Path}
+    File, remove_file, OpenOptions}, path::{PathBuf, Path}
 };
 
 const RUSKS_DIRECTORY_RELATIVE: &'static str = "./.rusks";
@@ -44,7 +44,11 @@ pub fn create_temp_file(name: &str) -> io::Result<File> {
 }
 
 pub fn open_temp_file(name: &str) -> io::Result<File> {
-    File::open(rusks_temp_file_relative_path(name))
+    OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(rusks_temp_file_relative_path(name))
 }
 
 pub fn remove_temp_file(name: &str) -> io::Result<()> {

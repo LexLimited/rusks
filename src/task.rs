@@ -61,13 +61,19 @@ impl Task {
     }
 
     pub fn to_md(&self) -> Result<String> {
-        Ok(format!(r#"
-# {}
-## Description
-{}
-## Notes
-{}
-                "#, self.title, self.description, self.notes.join("\n")))
+        let mut md_string = String::new();
+        md_string.push_str(&format!("# {}\n", self.title));
+        md_string.push_str(&format!("* **Description**\n{}\n", self.description));
+
+        if self.notes.len() > 0 {
+            md_string.push_str("* **Notes**\n\n");
+
+            for (i, note) in self.notes.iter().enumerate() {
+                md_string.push_str(&format!("  {}) {}\n", i + 1, note));
+            }
+        }
+
+        Ok(md_string)
     }
 
     pub fn to_json(&self) -> Result<String> {
