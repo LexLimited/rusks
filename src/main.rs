@@ -1,20 +1,25 @@
-use cmd::{CMD, Error};
-
-mod task;
-mod help;
-mod cmd;
-mod storage;
 mod algorithms;
+mod cmd;
 mod fs;
+mod storage;
+mod task;
+mod prompt;
+mod error;
+mod result;
 
-fn run_cmd() -> Result<(), Error> {
+use cmd::CMD;
+use result::Result;
+use storage::RusksStorage;
+
+fn run_cmd(storage: &RusksStorage) -> Result<()> {
     CMD::new()
-        ?.exec()
-        .or_else(|_| {
-            Ok(println!("Command failed, type `rusks help` for help"))
+        ?.exec(storage)
+        .or_else(|e| {
+            Ok(eprintln!("Command failed: {}", e))
         })
 }
 
-fn main() {
-    run_cmd().ok();
+fn main() -> Result<()> {
+    let storage = RusksStorage::new()?;
+    run_cmd(&storage)
 }

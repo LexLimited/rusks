@@ -1,8 +1,11 @@
 use std::fmt;
 
-use sled::{Db, Error};
+use sled::Db;
 
-use crate::{task::Task, fs::rusks_directory_relative_path};
+use crate::{
+    task::Task,
+    fs::rusks_storage_relative_path, error::Error, result::Result
+};
 
 pub struct RusksStorage {
     db: Db,
@@ -21,46 +24,84 @@ impl fmt::Display for Item {
 }
 
 impl Item {
+    pub fn get_task(&self) -> &Task {
+        &self.task
+    }
+
     pub fn get_task_mut(&mut self) -> &mut Task {
         &mut self.task
     }
 }
 
 impl RusksStorage {
-    pub fn new() -> Result<Self, Error> {
+    /// Creates a new instance ot RusksStorage.
+    /// Opens a sled db, which shoul only happen once.
+    pub fn new() -> Result<Self> {
         let db = sled::open(
-            format!("{}/storage", rusks_directory_relative_path())
+            rusks_storage_relative_path()    
         )?;
         Ok(RusksStorage{ db })
     }
 
-    /*
-    pub fn insert_task(&self, task: &Task) -> Result<(), Error> {
-        let id  = self.db.generate_id()?;
-        self.db.insert(id, task)
+    fn generate_key(&self) -> sled::Result<[u8; 8]> {
+        Ok(self.db.generate_id()?.to_le_bytes())
     }
-    */
+
+    pub fn insert_task(&self, task: &Task) -> Result<()> {
+        let key  = self.generate_key()?;
+       
+        let v = task.to_vec()?;
+        if let Ok(_) = self.db.insert(key, v.as_slice()) {
+            return Ok(())
+        }
+
+        Err(Error::Generic)
+    }
+
+    pub fn change_task(&self, id: u64, task: &Task) -> Result<()> {
+        let v = task.to_vec()?;
+
+        if self.db.get(id.to_le_bytes())?.is_none() {
+            return Err(Error::Reason{
+                reason: "Task does not exist or failed to find it".to_string()
+            })
+        }
+
+        if let Ok(_) = self.db.insert(id.to_le_bytes(), v.as_slice()) {
+            return Ok(())
+        }
+        
+        Err(Error::Generic)
+    }
 
     pub fn get_by_id(&self, id: u64) -> Option<Item> {
-        let mut task = Task::new(&format!("Sample task {}", id));
-        task
-            .set_description("sample desceiption")
-            .add_note("Note 1")
-            .add_note("Note 2");
-
-        Some(Item{ id, task })
+        match self.db.get(id.to_le_bytes()) {
+            Ok(v) => match v {
+                Some(v) => {
+                    if let Ok(task) = Task::from_bytes(&v) {
+                        return Some(Item{ id, task })
+                    }
+                    return None
+                },
+                None => None
+            },
+            Err(_) => None
+        }
     }
 
     pub fn get_all(&self) -> Vec<Item> {
-        let mut ret = vec![];
-        for id in 1..10 {
-            let mut task = Task::new(&format!("Task {}", id));
-            task
-                .set_description("This is a description")
-                .add_note("Message 1")
-                .add_note("Message 2")
-                .add_note("Message 3");
-            ret.push(Item{ id, task })
+        let mut ret: Vec<Item> = Vec::new();
+
+        for p in self.db.iter() {
+            if let Ok((k, v)) = p {
+                let id_bytes: &[u8] = &k;
+                let id = u64::from_le_bytes(id_bytes.try_into().expect("Wrong size of id"));
+                let task = Task::from_bytes(&v);
+
+                if let Ok(task) = task {
+                    ret.push(Item{ id, task });
+                }
+            }
         }
 
         ret

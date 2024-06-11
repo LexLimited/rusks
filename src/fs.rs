@@ -1,5 +1,4 @@
 use std::{io, fs::{
-    read_dir,
     create_dir,
     create_dir_all,
     remove_dir_all,
@@ -10,6 +9,10 @@ const RUSKS_DIRECTORY_RELATIVE: &'static str = "./.rusks";
 
 pub fn rusks_directory_relative_path() -> &'static str {
     RUSKS_DIRECTORY_RELATIVE
+}
+
+pub fn rusks_storage_relative_path() -> PathBuf {
+    Path::new(rusks_directory_relative_path()).join("storage")
 }
 
 pub fn rusks_temp_relative_path() -> PathBuf {
@@ -38,6 +41,10 @@ pub fn rusks_temp_file_relative_path(f_name: &str) -> PathBuf {
 
 pub fn create_temp_file(name: &str) -> io::Result<File> {
     File::create(rusks_temp_file_relative_path(name))
+}
+
+pub fn open_temp_file(name: &str) -> io::Result<File> {
+    File::open(rusks_temp_file_relative_path(name))
 }
 
 pub fn remove_temp_file(name: &str) -> io::Result<()> {
