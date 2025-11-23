@@ -2,10 +2,7 @@ use std::fmt;
 
 use sled::Db;
 
-use crate::{
-    task::Task,
-    fs::rusks_storage_relative_path, error::Error, result::Result
-};
+use crate::{core::task::Task, error::Error, fs::rusks_storage_relative_path, result::Result};
 
 pub struct RusksStorage {
     db: Db,
@@ -41,10 +38,8 @@ impl RusksStorage {
     /// Creates a new instance ot RusksStorage.
     /// Opens a sled db, which shoul only happen once.
     pub fn new() -> Result<Self> {
-        let db = sled::open(
-            rusks_storage_relative_path()    
-        )?;
-        Ok(RusksStorage{ db })
+        let db = sled::open(rusks_storage_relative_path())?;
+        Ok(RusksStorage { db })
     }
 
     fn generate_key(&self) -> sled::Result<[u8; 8]> {
@@ -52,11 +47,11 @@ impl RusksStorage {
     }
 
     pub fn insert_task(&self, task: &Task) -> Result<()> {
-        let key  = self.generate_key()?;
-       
+        let key = self.generate_key()?;
+
         let v = task.to_vec()?;
         if let Ok(_) = self.db.insert(key, v.as_slice()) {
-            return Ok(())
+            return Ok(());
         }
 
         Err(Error::Generic)
@@ -66,15 +61,15 @@ impl RusksStorage {
         let v = task.to_vec()?;
 
         if self.db.get(id.to_le_bytes())?.is_none() {
-            return Err(Error::Reason{
-                reason: "Task does not exist or failed to find it".to_string()
-            })
+            return Err(Error::Reason {
+                reason: "Task does not exist or failed to find it".to_string(),
+            });
         }
 
         if let Ok(_) = self.db.insert(id.to_le_bytes(), v.as_slice()) {
-            return Ok(())
+            return Ok(());
         }
-        
+
         Err(Error::Generic)
     }
 
@@ -83,13 +78,13 @@ impl RusksStorage {
             Ok(v) => match v {
                 Some(v) => {
                     if let Ok(task) = Task::from_bytes(&v) {
-                        return Some(Item{ id, task })
+                        return Some(Item { id, task });
                     }
-                    return None
-                },
-                None => None
+                    return None;
+                }
+                None => None,
             },
-            Err(_) => None
+            Err(_) => None,
         }
     }
 
@@ -103,7 +98,7 @@ impl RusksStorage {
                 let task = Task::from_bytes(&v);
 
                 if let Ok(task) = task {
-                    ret.push(Item{ id, task });
+                    ret.push(Item { id, task });
                 }
             }
         }
@@ -113,7 +108,9 @@ impl RusksStorage {
 
     pub fn remove_by_id(&self, id: u64) -> Result<()> {
         if let Err(e) = self.db.remove(id.to_le_bytes()) {
-            return Err(Error::Reason{ reason: format!("Failed to remove an item: {}", e) });
+            return Err(Error::Reason {
+                reason: format!("Failed to remove an item: {}", e),
+            });
         }
         Ok(())
     }

@@ -1,23 +1,18 @@
 mod algorithms;
+mod cli;
 mod cmd;
-mod fs;
-mod storage;
-mod task;
-mod prompt;
+mod context;
+mod core;
 mod error;
+mod fs;
+mod prompt;
 mod result;
+mod storage;
 
-use cmd::CMD;
 use result::Result;
 
-fn run_cmd() -> Result<()> {
-    CMD::new()
-        ?.exec()
-        .or_else(|e| {
-            Ok(eprintln!("Command failed: {}", e))
-        })
-}
+use crate::{cli::CliParser, cmd::cmd_executor::CmdExecutor, context::Context};
 
 fn main() -> Result<()> {
-    run_cmd()
+    Ok(CmdExecutor::new(&Context::try_new()?).execute(CliParser::get_cmd()?))
 }

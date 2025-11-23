@@ -1,6 +1,6 @@
 use std::{fmt, fs::File, io::Read};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{error::Error, result::Result};
 
@@ -14,7 +14,7 @@ pub struct Task {
 impl fmt::Display for Task {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Ok(json) = self.to_json() {
-            return write!(f, "{}", json)
+            return write!(f, "{}", json);
         }
         write!(f, "{}", "<ERORR>")
     }
@@ -25,7 +25,7 @@ impl Task {
         Task {
             title: String::from(title),
             description: String::new(),
-            notes: vec![]
+            notes: vec![],
         }
     }
 

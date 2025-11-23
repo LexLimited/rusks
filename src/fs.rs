@@ -1,8 +1,7 @@
-use std::{io, fs::{
-    create_dir,
-    create_dir_all,
-    remove_dir_all,
-    File, remove_file, OpenOptions}, path::{PathBuf, Path}
+use std::{
+    fs::{create_dir, create_dir_all, remove_dir_all, remove_file, File, OpenOptions},
+    io,
+    path::{Path, PathBuf},
 };
 
 const RUSKS_DIRECTORY_RELATIVE: &'static str = "./.rusks";
@@ -61,7 +60,7 @@ pub fn is_rusks_repository() -> bool {
 
 pub fn init_rusks_repository() -> io::Result<()> {
     if is_rusks_repository() {
-        return Ok(())
+        return Ok(());
     }
 
     create_rusks_directory()?;
