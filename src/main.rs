@@ -14,5 +14,5 @@ use result::Result;
 use crate::{cli::CliParser, cmd::cmd_executor::CmdExecutor, context::Context};
 
 fn main() -> Result<()> {
-    Ok(CmdExecutor::new(&Context::try_new()?).execute(CliParser::get_cmd()?))
+    CmdExecutor::new(&Context::try_new()?).execute(CliParser::get_cmd()?)
 }

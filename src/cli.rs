@@ -1,11 +1,15 @@
 use clap::{arg, value_parser, Arg, ArgMatches, Command};
 
-use crate::{cmd::Cmd, error::Error};
+use crate::{
+    cmd::{Cmd, Remove},
+    error::Error,
+    result::Result,
+};
 
 pub struct CliParser;
 
 impl CliParser {
-    pub fn get_cmd() -> Result<Cmd, Error> {
+    pub fn get_cmd() -> Result<Cmd> {
         if let Some((cmd, matches)) = Self::parse_args().get_matches().subcommand() {
             match cmd {
                 "init" => Ok(Cmd::Init),
@@ -63,7 +67,7 @@ impl CliParser {
             .subcommand_required(true)
     }
 
-    fn parse_cmd_add(matches: &ArgMatches) -> Result<Cmd, Error> {
+    fn parse_cmd_add(matches: &ArgMatches) -> Result<Cmd> {
         if let Some(title) = matches.get_one::<String>("title") {
             return Ok(Cmd::Add {
                 title: title.clone(),
@@ -74,19 +78,16 @@ impl CliParser {
         Err(Error::Generic)
     }
 
-    fn parse_cmd_remove(matches: &ArgMatches) -> Result<Cmd, Error> {
+    fn parse_cmd_remove(matches: &ArgMatches) -> Result<Cmd> {
         match matches.get_one::<u64>("id") {
-            Some(id) => Ok(Cmd::Remove {
-                id: Some(*id),
-                name: None,
-            }),
+            Some(id) => Ok(Cmd::Remove(Remove::new(Some(*id), None))),
             None => Err(Error::Reason {
                 reason: "Failed to parse an `id` argument".to_string(),
             }),
         }
     }
 
-    fn parse_cmd_edit(matches: &ArgMatches) -> Result<Cmd, Error> {
+    fn parse_cmd_edit(matches: &ArgMatches) -> Result<Cmd> {
         if let Some(id) = matches.get_one::<u64>("id") {
             return Ok(Cmd::Edit {
                 id: Some(*id),
@@ -97,7 +98,7 @@ impl CliParser {
         Err(Error::Generic)
     }
 
-    fn parse_cmd_list(_: &ArgMatches) -> Result<Cmd, Error> {
+    fn parse_cmd_list(_: &ArgMatches) -> Result<Cmd> {
         Ok(Cmd::List {
             pattern: String::new(),
         })

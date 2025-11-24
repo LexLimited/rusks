@@ -1,4 +1,8 @@
-use std::{fmt, fs::File, io::Read};
+use std::{
+    fmt::{self, Display},
+    fs::File,
+    io::Read,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -82,5 +86,37 @@ impl Task {
 
     pub fn to_vec(&self) -> Result<Vec<u8>> {
         serde_json::to_vec(self).map_err(|e| Error::from(e))
+    }
+}
+
+#[derive(Clone)]
+pub struct TaskId(u64);
+
+impl Display for TaskId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl TaskId {
+    pub fn new(id: u64) -> Self {
+        Self(id)
+    }
+
+    pub fn try_from_bytes(bytes: &[u8]) -> Result<Self> {
+        if bytes.len() != size_of::<u64>() {
+            Err(Error::Reason {
+                reason: "Invalid slice length".into(),
+            })
+        } else {
+            unsafe {
+                let ptr = std::ptr::from_ref(bytes) as *const u64;
+                Ok(Self(*ptr))
+            }
+        }
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        unsafe { std::slice::from_raw_parts(&self.0 as *const u64 as *const u8, size_of::<u64>()) }
     }
 }

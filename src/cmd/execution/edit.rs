@@ -2,12 +2,13 @@ use std::{fs::File, io::Write, process};
 
 use crate::{
     cmd::Error,
-    core::task::Task,
+    core::task::{Task, TaskId},
     fs::{create_temp_file, open_temp_file, rusks_temp_file_relative_path},
+    result::Result,
     storage::RusksStorage,
 };
 
-fn write_task_to_file(task: &Task, file: &mut File) -> Result<(), Error> {
+fn write_task_to_file(task: &Task, file: &mut File) -> Result<()> {
     let jstr = task.to_json().map_err(|e| Error::Reason {
         reason: format!("Failed to serialize task to json: {}", e),
     })?;
@@ -20,8 +21,8 @@ fn write_task_to_file(task: &Task, file: &mut File) -> Result<(), Error> {
     })
 }
 
-fn edit(storage: &RusksStorage, id: u64, task: &mut Task) -> Result<(), Error> {
-    let temp_file_name = format!("edit_{}", id);
+fn edit(storage: &RusksStorage, id: TaskId, task: &mut Task) -> Result<()> {
+    let temp_file_name = format!("edit_{id}");
     let mut temp_file = create_temp_file(&temp_file_name).map_err(|e| Error::Reason {
         reason: format!("Failed to create temp file: {}", e),
     })?;
@@ -42,21 +43,7 @@ fn edit(storage: &RusksStorage, id: u64, task: &mut Task) -> Result<(), Error> {
     }
 }
 
-pub fn exec_edit(
-    storage: &RusksStorage,
-    id: &Option<u64>,
-    name: &Option<String>,
-) -> Result<(), Error> {
-    let id = match id {
-        Some(id) => {
-            if name.is_some() {
-                return Err(Error::Generic);
-            }
-            id
-        }
-        None => return Err(Error::Generic),
-    };
-
+pub fn exec_edit(storage: &RusksStorage, id: TaskId) -> Result<()> {
     match storage.get_by_id(*id) {
         Some(mut item) => edit(storage, *id, item.get_task_mut()),
         None => Err(Error::Reason {

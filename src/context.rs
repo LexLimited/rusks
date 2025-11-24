@@ -1,14 +1,17 @@
-use sled::Db;
-
-use crate::result;
+use crate::{result::Result, storage::RusksStorage};
 
 pub struct Context {
-    db: Db,
+    storage: RusksStorage,
 }
 
 impl Context {
-    pub fn try_new() -> result::Result<Self> {
-        let db = sled::open("")?;
-        Ok(Self { db })
+    pub fn try_new() -> Result<Self> {
+        Ok(Self {
+            storage: RusksStorage::new()?,
+        })
+    }
+
+    pub fn storage(&self) -> &RusksStorage {
+        &self.storage
     }
 }
