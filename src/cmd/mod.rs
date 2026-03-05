@@ -1,33 +1,20 @@
 pub mod cmd_executor;
-mod execution;
+pub mod execution;
 
-use crate::{core::task::TaskId, error::Error};
+use crate::core::task::TaskId;
 
 pub enum Cmd {
+    Version,
     Init,
-    Delete,
+    Deinit,
     Status,
-    Add(Add),
+    Add(AddCommand),
     Remove(TaskId),
     Edit(TaskId),
     List { pattern: String },
 }
 
-pub struct Add {
-    title: String,
-    options: Vec<String>,
-}
-
-impl Add {
-    pub fn new(title: String, options: Vec<String>) -> Self {
-        Self { title, options }
-    }
-
-    pub fn title(&self) -> &String {
-        &self.title
-    }
-
-    pub fn options(&self) -> &Vec<String> {
-        &self.options
-    }
+pub struct AddCommand {
+    pub title: String,
+    pub options: Vec<String>,
 }

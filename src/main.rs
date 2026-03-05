@@ -3,13 +3,12 @@ mod cli;
 mod cmd;
 mod context;
 mod core;
-mod error;
-mod fs;
 mod prompt;
-mod result;
+mod repo;
 mod storage;
+mod version;
 
-use result::Result;
+use anyhow::Result;
 
 use crate::{cli::CliParser, cmd::cmd_executor::CmdExecutor, context::Context};
 

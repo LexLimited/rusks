@@ -4,9 +4,8 @@ use std::{
     io::Read,
 };
 
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-
-use crate::{error::Error, result::Result};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Task {
@@ -41,7 +40,7 @@ impl Task {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        serde_json::from_slice(bytes).map_err(|e| Error::from(e))
+        Ok(serde_json::from_slice(bytes)?)
     }
 
     pub fn set_description(&mut self, description: &str) -> &mut Self {
@@ -81,11 +80,11 @@ impl Task {
     }
 
     pub fn to_json(&self) -> Result<String> {
-        serde_json::to_string_pretty(self).map_err(|e| Error::from(e))
+        Ok(serde_json::to_string_pretty(self)?)
     }
 
     pub fn to_vec(&self) -> Result<Vec<u8>> {
-        serde_json::to_vec(self).map_err(|e| Error::from(e))
+        Ok(serde_json::to_vec(self)?)
     }
 }
 
@@ -105,9 +104,7 @@ impl TaskId {
 
     pub fn try_from_bytes(bytes: &[u8]) -> Result<Self> {
         if bytes.len() != size_of::<u64>() {
-            Err(Error::Reason {
-                reason: "Invalid slice length".into(),
-            })
+            Err(anyhow!("Invalid slice length"))
         } else {
             unsafe {
                 let ptr = std::ptr::from_ref(bytes) as *const u64;

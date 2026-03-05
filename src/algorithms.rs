@@ -24,10 +24,8 @@ pub fn levenshtein_dist(a: &str, b: &str) -> usize {
                 false => 1,
             };
 
-            d[i + 1][j + 1] = usize::min(
-                usize::min(d[i][j + 1] + 1, d[i + 1][j] + 1),
-                d[i][j] + cost
-            );
+            d[i + 1][j + 1] =
+                usize::min(usize::min(d[i][j + 1] + 1, d[i + 1][j] + 1), d[i][j] + cost);
         }
     }
 
@@ -44,7 +42,13 @@ mod tests {
         assert_eq!(levenshtein_dist("", "back"), 4);
         assert_eq!(levenshtein_dist("book", "back"), 2);
         assert_eq!(levenshtein_dist("brook", "bottomless"), 8);
-        assert_eq!(levenshtein_dist("abc678!pstyu", "5klhs;e5phim;seigsnsrjo4o4"), 24);
-        assert_eq!(levenshtein_dist("DFfsERTETET$RT", "dfFS:DLGFSdf;ldflgfgldfgsdFRADF"), 27);
+        assert_eq!(
+            levenshtein_dist("abc678!pstyu", "5klhs;e5phim;seigsnsrjo4o4"),
+            24
+        );
+        assert_eq!(
+            levenshtein_dist("DFfsERTETET$RT", "dfFS:DLGFSdf;ldflgfgldfgsdFRADF"),
+            27
+        );
     }
 }

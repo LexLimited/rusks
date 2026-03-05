@@ -1,13 +1,9 @@
 use std::fmt;
 
+use anyhow::{anyhow, Result};
 use sled::Db;
 
-use crate::{
-    core::task::{Task, TaskId},
-    error::Error,
-    fs::rusks_storage_relative_path,
-    result::Result,
-};
+use crate::core::task::{Task, TaskId};
 
 pub struct RusksStorage {
     db: Db,
@@ -43,7 +39,7 @@ impl RusksStorage {
     /// Creates a new instance ot RusksStorage.
     /// Opens a sled db, which shoul only happen once.
     pub fn new() -> Result<Self> {
-        let db = sled::open(rusks_storage_relative_path())?;
+        let db = sled::open("./.rusks/storage")?;
         Ok(RusksStorage { db })
     }
 
@@ -53,25 +49,23 @@ impl RusksStorage {
 
     pub fn insert_task(&self, task: &Task) -> Result<()> {
         self.db
-            .insert(self.generate_key()?, task.to_vec()?.as_slice())
-            .map(|_| ())
-            .map_err(|_| Error::Generic)
+            .insert(self.generate_key()?, task.to_vec()?.as_slice())?;
+
+        Ok(())
     }
 
     pub fn change_task(&self, id: TaskId, task: &Task) -> Result<()> {
         let v = task.to_vec()?;
 
         if self.db.get(id.as_bytes())?.is_none() {
-            return Err(Error::Reason {
-                reason: "Task does not exist or failed to find it".to_string(),
-            });
+            return Err(anyhow!("Task does not exist"));
         }
 
         if let Ok(_) = self.db.insert(id.as_bytes(), v.as_slice()) {
             return Ok(());
         }
 
-        Err(Error::Generic)
+        Err(anyhow!("?"))
     }
 
     pub fn get_by_id(&self, id: TaskId) -> Option<Item> {
@@ -89,12 +83,12 @@ impl RusksStorage {
         }
     }
 
-    pub fn get_all(&self) -> Vec<Item> {
+    pub fn get_all(&self) -> Result<Vec<Item>> {
         let mut ret: Vec<Item> = Vec::new();
 
         for p in self.db.iter() {
             if let Ok((k, v)) = p {
-                let id = TaskId::try_from_bytes(&k).expect("Incompatible key");
+                let id = TaskId::try_from_bytes(&k)?;
                 let task = Task::from_bytes(&v);
 
                 if let Ok(task) = task {
@@ -103,22 +97,18 @@ impl RusksStorage {
             }
         }
 
-        ret
+        Ok(ret)
     }
 
     pub fn remove_by_id(&self, id: TaskId) -> Result<()> {
         if let Err(e) = self.db.remove(id.as_bytes()) {
-            return Err(Error::Reason {
-                reason: format!("Failed to remove an item: {}", e),
-            });
+            return Err(anyhow!("Failed to remove an item: {}", e));
         }
         Ok(())
     }
 
     fn id_from_key(key: &[u8]) -> Result<TaskId> {
-        Ok(TaskId::new(u64::from_le_bytes(
-            key.try_into().map_err(|_| Error::Generic)?,
-        )))
+        Ok(TaskId::new(u64::from_le_bytes(key.try_into()?)))
     }
 
     fn key_from_id<'a>(id: &'a TaskId) -> &'a [u8] {
